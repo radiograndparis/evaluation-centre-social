@@ -15,13 +15,13 @@ textarea{width:100%;border:2px solid #e5e7eb;border-radius:15px;padding:13px;fon
 <script>const API_URL="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec"; async function sendToCentral(data){ if(!API_URL || API_URL==="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec") throw new Error("URL API non configurée"); const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)}); return await r.json(); }</script></head>
 <body><div class="wrap">
 <div id="form">
-<div id="activityBox" class="card" style="display:none"><h2>Activité</h2><div id="activityName" style="font-size:20px;font-weight:800"></div></div>
+<div id="activityBox" class="card" style="display:none"><h2>Activité</h2><div id="activityName" style="font-size:20px;font-weight:800"></div><button onclick="changeActivity()" style="margin-top:12px;border:0;border-radius:12px;padding:10px 14px;font-weight:700;background:#eef0f7">Changer d’activité</button></div>
 <div class="hero"><h1>Votre avis compte</h1><p>30 secondes pour nous aider à améliorer les activités du centre.</p></div>
 <section class="card"><h2>Vous avez aimé cette activité ?</h2><div class="stars" id="q1"></div></section>
-<section class="card"><h2>Vous êtes-vous senti(e) bien accueilli(e) ?</h2><div class="stars" id="q2"></div></section>
-<section class="card"><h2>Avez-vous découvert ou appris quelque chose ?</h2><div class="choice" id="q3"><button onclick="pick('q3',1,this)">Oui</button><button onclick="pick('q3',2,this)">Un peu</button><button onclick="pick('q3',3,this)">Non</button></div></section>
-<section class="card"><h2>Vous aimeriez revenir ?</h2><div class="choice" id="q4"><button onclick="pick('q4',1,this)">Oui</button><button onclick="pick('q4',2,this)">Peut-être</button><button onclick="pick('q4',3,this)">Non</button></div></section>
-<section class="card"><h2>Une idée pour améliorer ? <span style="font-size:13px;font-weight:500;color:#667085">(facultatif)</span></h2><textarea id="comment" rows="3" placeholder="Écrivez-nous une idée…"></textarea></section>
+<section class="card"><h2>Vous êtes-vous senti(e) bien accueilli(e) et à votre place ?</h2><div class="stars" id="q2"></div></section>
+<section class="card"><h2>Est-ce que cette activité vous a apporté quelque chose ?</h2><div class="choice" id="q3"><button onclick="pick('q3',1,this)">Beaucoup</button><button onclick="pick('q3',2,this)">Un peu</button><button onclick="pick('q3',3,this)">Pas vraiment</button></div></section>
+<section class="card"><h2>Cette activité vous donne-t-elle envie de participer à d'autres choses au centre social ?</h2><div class="choice" id="q4"><button onclick="pick('q4',1,this)">Oui</button><button onclick="pick('q4',2,this)">Peut-être</button><button onclick="pick('q4',3,this)">Non</button></div></section>
+<section class="card"><h2>Si vous pouviez changer une seule chose ? <span style="font-size:13px;font-weight:500;color:#667085">(facultatif)</span></h2><textarea id="comment" rows="3" placeholder="Une idée, une suggestion…"></textarea></section>
 <button class="send" onclick="send()">Envoyer mon avis</button>
 <div class="tiny">Votre réponse est anonyme.</div>
 </div>
@@ -30,12 +30,21 @@ textarea{width:100%;border:2px solid #e5e7eb;border-radius:15px;padding:13px;fon
 <script>
 const answers={};
 const params=new URLSearchParams(location.search);
-const activity=(params.get("action")||"").trim();
-if(activity){document.getElementById("activityBox").style.display="block";document.getElementById("activityName").textContent=activity;}
+let activity=(params.get("action")||localStorage.getItem("evaluationActivity")||"").trim();
+function configureActivity(){
+  let name=prompt("Nom de l’activité évaluée :", activity||"");
+  if(name && name.trim()){ activity=name.trim(); localStorage.setItem("evaluationActivity",activity); renderActivity(); }
+}
+function renderActivity(){
+  if(activity){document.getElementById("activityBox").style.display="block";document.getElementById("activityName").textContent=activity;}
+  else configureActivity();
+}
+function changeActivity(){configureActivity();}
+renderActivity();
 function stars(id){document.getElementById(id).innerHTML=[1,2,3,4,5].map(n=>`<button onclick="pick('${id}',${n},this)" aria-label="${n} sur 5">★</button>`).join("")}
 function pick(id,n,el){answers[id]=n;document.getElementById(id).querySelectorAll("button").forEach(b=>b.classList.remove("active"));el.classList.add("active")}
 async function send(){
- if(!activity){alert("Cette tablette n’est pas configurée pour une activité. Ajoutez ?action=Nom-de-l-activité à l’adresse.");return}
+ if(!activity){configureActivity(); if(!activity)return}
  if(!answers.q1||!answers.q2||!answers.q3||!answers.q4){alert("Il manque encore une réponse.");return}
  const data={type:"habitant",action:activity,satisfaction:answers.q1,accueil:answers.q2,apport:answers.q3,envie:answers.q4,comment:comment.value};
  try{
