@@ -12,7 +12,7 @@ h2{font-size:20px;margin:0 0 16px}.stars{display:grid;grid-template-columns:repe
 textarea{width:100%;border:2px solid #e5e7eb;border-radius:15px;padding:13px;font:inherit;resize:vertical}.send{width:100%;border:0;border-radius:17px;padding:16px;background:#7c3aed;color:white;font-size:18px;font-weight:800;cursor:pointer}.tiny{text-align:center;font-size:12px;color:#667085;margin:14px}
 #done{display:none;text-align:center;padding:50px 15px}.check{font-size:54px}
 </style>
-<script>const API_URL="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec"; async function sendToCentral(data){ if(!API_URL || API_URL==="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec") throw new Error("URL API non configurée"); const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)}); return await r.json(); }</script></head>
+<script>const API_URL="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec"; async function sendToCentral(data){ const body=new URLSearchParams(); body.set("payload",JSON.stringify(data)); const r=await fetch(API_URL,{method:"POST",body}); return await r.json(); }</script></head>
 <body><div class="wrap">
 <div id="form">
 <div id="activityBox" class="card" style="display:none"><h2>Activité</h2><div id="activityName" style="font-size:20px;font-weight:800"></div><button onclick="changeActivity()" style="margin-top:12px;border:0;border-radius:12px;padding:10px 14px;font-weight:700;background:#eef0f7">Changer d’activité</button></div>
