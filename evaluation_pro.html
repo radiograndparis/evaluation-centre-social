@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Évaluation – Centre social</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#657084;--accent:#4f46e5;--line:#e3e7ef}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:linear-gradient(135deg,#4338ca,#7c3aed);color:white;padding:20px 18px 24px;position:sticky;top:0;z-index:2}
+h1{font-size:22px;margin:0 0 5px}header p{margin:0;opacity:.88;font-size:14px}
+main{max-width:720px;margin:auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px #00000008}
+label{display:block;font-weight:650;margin:10px 0 7px}input,select,textarea{width:100%;padding:12px;border:1px solid #cfd6e2;border-radius:11px;font:inherit;background:white}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.scale{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.scale button,.choice{border:1px solid #cfd6e2;background:#fff;border-radius:12px;padding:11px 5px;font-weight:700;cursor:pointer}.scale button span{display:block;font-size:11px;color:var(--muted);font-weight:500;margin-top:2px}.scale button.active{background:#4f46e5;color:white;border-color:#4f46e5}.scale button.active span{color:#e9e7ff}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.primary{background:#4f46e5;color:white;border:0;border-radius:12px;padding:13px 16px;font-weight:750;cursor:pointer}.secondary{background:#eef0f7;color:#27314a;border:0;border-radius:12px;padding:13px 16px;font-weight:700;cursor:pointer}
+.small{font-size:12px;color:var(--muted)}#message{padding:10px;border-radius:10px;background:#ecfdf5;color:#065f46;display:none;margin-bottom:12px}.danger{color:#b42318}
+</style>
+<script>const API_URL="AKfycbwuz5jl8vnyKAIIEfBUShPWodFk9Q3cdgOzR6LAtyuAyaITUBvNOu1B6hq-OrYiWCdX
+"; async function sendToCentral(data){ if(!API_URL || API_URL==="API_URL_A_REMPLACER") throw new Error("URL API non configurée"); const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)}); return await r.json(); }</script></head>
+<body>
+<header><h1>Évaluation d’une action</h1><p>2 à 3 minutes · données simples · une fiche par action</p></header>
+<main>
+<div id="message"></div>
+<section class="card">
+<label>Action</label><input id="action" placeholder="Ex. Café des parents">
+<div class="grid"><div><label>Date</label><input id="date" type="date"></div><div><label>Public</label><select id="public"><option>Familles</option><option>Adultes</option><option>Jeunes</option><option>Enfants</option><option>Seniors</option><option>Mixte</option></select></div></div>
+<div class="grid"><div><label>Participants</label><input id="participants" type="number" min="0"></div><div><label>Nouveaux participants</label><input id="newp" type="number" min="0"></div></div>
+</section>
+<section class="card">
+<div class="small">Échelle : 1 = faible · 2 = moyen · 3 = bon · 4 = très bon</div>
+<div id="scales"></div>
+</section>
+<section class="card">
+<label>Objectif principal de l’action</label><input id="objective" placeholder="Une phrase courte">
+<label>Qu’est-ce que cette action nous apprend pour la suite ?</label><textarea id="learning" rows="3" placeholder="Une ou deux phrases"></textarea>
+<label>Une suite à prévoir ?</label><select id="follow"><option>Non</option><option>À envisager</option><option>Oui</option></select>
+</section>
+<section class="card actions">
+<button class="primary" onclick="save()">Enregistrer l’évaluation</button>
+<button class="secondary" onclick="exportCSV()">Exporter les évaluations</button>
+<button class="secondary" onclick="resetForm()">Nouvelle action</button>
+</section>
+<section class="card"><strong>Dernières évaluations</strong><div id="history" class="small" style="margin-top:10px"></div></section>
+</main>
+<script>
+const criteria=[
+["Mobilisation","Les personnes visées sont venues"],
+["Participation","Les habitants ont été réellement acteurs"],
+["Objectif","L’objectif principal a été atteint"],
+["Pertinence","L’action répondait à un besoin"],
+["Suite","L’action ouvre une possibilité de suite"]
+];
+const values={};
+function render(){document.getElementById("scales").innerHTML=criteria.map((c,i)=>`<div style="margin-top:15px"><label>${c[0]} <span class="small">— ${c[1]}</span></label><div class="scale">${[1,2,3,4].map(n=>`<button onclick="pick(${i},${n},this)">${n}<span>${["Faible","Moyen","Bon","Très bon"][n-1]}</span></button>`).join("")}</div></div>`).join("")}
+function pick(i,n,el){values[i]=n;el.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active"));el.classList.add("active")}
+async function save(){
+ if(!action.value.trim()){alert("Indiquez le nom de l’action.");return}
+ if(criteria.some((_,i)=>!values[i])){alert("Évaluez les 5 critères.");return}
+ const data={type:"pro",date:date.value||new Date().toISOString().slice(0,10),action:action.value,public:public.value,participants:participants.value,newp:newp.value,mobilisation:values[0],participation:values[1],objectifScore:values[2],pertinence:values[3],suiteScore:values[4],objective:objective.value,learning:learning.value,follow:follow.value};
+ try{
+   const result=await sendToCentral(data);
+   if(!result.ok) throw new Error(result.error||"Erreur");
+   const rows=JSON.parse(localStorage.getItem("evalPro")||"[]"); rows.unshift(data); localStorage.setItem("evalPro",JSON.stringify(rows));
+   message.style.display="block"; message.textContent="Évaluation enregistrée dans la base centrale."; showHistory();
+ }catch(e){ alert("Impossible d’envoyer vers la base centrale. Vérifiez la connexion et l’URL API."); }
+}
+function showHistory(){const rows=JSON.parse(localStorage.getItem("evalPro")||"[]");history.innerHTML=rows.slice(0,8).map(r=>`<div style="padding:8px 0;border-bottom:1px solid #eee"><b>${r.action}</b> · ${r.date||""}<br>${r.participants||0} participants · objectif ${r.Objectif}/4 · mobilisation ${r.Mobilisation}/4</div>`).join("")||"Aucune évaluation enregistrée."}
+function resetForm(){location.reload()}
+function exportCSV(){
+ const rows=JSON.parse(localStorage.getItem("evalPro")||"[]"); if(!rows.length){alert("Aucune donnée à exporter.");return}
+ const keys=Object.keys(rows[0]);const esc=v=>`"${String(v??"").replaceAll('"','""')}"`;const csv=[keys.map(esc).join(";"),...rows.map(r=>keys.map(k=>esc(r[k])).join(";"))].join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="evaluations_centre_social.csv";a.click()
+}
+date.value=new Date().toISOString().slice(0,10);render();showHistory()
+</script>
+</body></html>
