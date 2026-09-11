@@ -12,10 +12,10 @@ h2{font-size:20px;margin:0 0 16px}.stars{display:grid;grid-template-columns:repe
 textarea{width:100%;border:2px solid #e5e7eb;border-radius:15px;padding:13px;font:inherit;resize:vertical}.send{width:100%;border:0;border-radius:17px;padding:16px;background:#7c3aed;color:white;font-size:18px;font-weight:800;cursor:pointer}.tiny{text-align:center;font-size:12px;color:#667085;margin:14px}
 #done{display:none;text-align:center;padding:50px 15px}.check{font-size:54px}
 </style>
-<script>const API_URL="AKfycbwuz5jl8vnyKAIIEfBUShPWodFk9Q3cdgOzR6LAtyuAyaITUBvNOu1B6hq-OrYiWCdX
-"; async function sendToCentral(data){ if(!API_URL || API_URL==="API_URL_A_REMPLACER") throw new Error("URL API non configurée"); const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)}); return await r.json(); }</script></head>
+<script>const API_URL="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec"; async function sendToCentral(data){ if(!API_URL || API_URL==="https://script.google.com/macros/s/AKfycbx0aQwVRzv8Y6b6yhF5ySGfUQKUbydI6QeNVPMTouA-lv2AjWkgcAQLjFGWqsU3j0Rq/exec") throw new Error("URL API non configurée"); const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)}); return await r.json(); }</script></head>
 <body><div class="wrap">
 <div id="form">
+<div id="activityBox" class="card" style="display:none"><h2>Activité</h2><div id="activityName" style="font-size:20px;font-weight:800"></div></div>
 <div class="hero"><h1>Votre avis compte</h1><p>30 secondes pour nous aider à améliorer les activités du centre.</p></div>
 <section class="card"><h2>Vous avez aimé cette activité ?</h2><div class="stars" id="q1"></div></section>
 <section class="card"><h2>Vous êtes-vous senti(e) bien accueilli(e) ?</h2><div class="stars" id="q2"></div></section>
@@ -29,11 +29,15 @@ textarea{width:100%;border:2px solid #e5e7eb;border-radius:15px;padding:13px;fon
 </div>
 <script>
 const answers={};
+const params=new URLSearchParams(location.search);
+const activity=(params.get("action")||"").trim();
+if(activity){document.getElementById("activityBox").style.display="block";document.getElementById("activityName").textContent=activity;}
 function stars(id){document.getElementById(id).innerHTML=[1,2,3,4,5].map(n=>`<button onclick="pick('${id}',${n},this)" aria-label="${n} sur 5">★</button>`).join("")}
 function pick(id,n,el){answers[id]=n;document.getElementById(id).querySelectorAll("button").forEach(b=>b.classList.remove("active"));el.classList.add("active")}
 async function send(){
+ if(!activity){alert("Cette tablette n’est pas configurée pour une activité. Ajoutez ?action=Nom-de-l-activité à l’adresse.");return}
  if(!answers.q1||!answers.q2||!answers.q3||!answers.q4){alert("Il manque encore une réponse.");return}
- const data={type:"habitant",satisfaction:answers.q1,accueil:answers.q2,apport:answers.q3,envie:answers.q4,comment:comment.value};
+ const data={type:"habitant",action:activity,satisfaction:answers.q1,accueil:answers.q2,apport:answers.q3,envie:answers.q4,comment:comment.value};
  try{
    const result=await sendToCentral(data);
    if(!result.ok) throw new Error(result.error||"Erreur");
